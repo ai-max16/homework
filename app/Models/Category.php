@@ -5,12 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Task extends Model
+class Category extends Model
 {
     use HasFactory;
 
-    public function category()
+    public function tasks()
     {
-        return $this->belongsTo(Category::class);
+        return $this->hasMany(Task::class);
     }
 }

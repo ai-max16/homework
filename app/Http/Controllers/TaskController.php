@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Task;
 use Illuminate\Http\Request;
 
@@ -12,9 +13,25 @@ class TaskController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $tasks = Task::latest()->get();
+        $status = $request->query('status', 'all');
+        $search = $request->query('search');
+
+        $tasks = Task::query();
+
+        if ($status == 'completed') {
+            $tasks->where('completed', true);
+        } elseif ($status == 'incomplete') {
+            $tasks->where('completed', false);
+        }
+
+        if ($search) {
+            $tasks->where('title', 'like', '%' . $search . '%');
+        }
+
+        $tasks = $tasks->get();
+
         return view('tasks.index', compact('tasks'));
     }
 
@@ -25,7 +42,8 @@ class TaskController extends Controller
      */
     public function create()
     {
-        return view('tasks.create');
+        $categories  = Category::all();
+        return view('tasks.create', compact('categories'));
     }
 
     /**
@@ -38,14 +56,19 @@ class TaskController extends Controller
     {
         $request->validate([
             'title' => 'required|max:20',
+            'category_id' => 'required|exists:categories,id',
         ]);
 
         $task = new Task();
         $task->title = $request->input('title');
+        $task->category_id = $request->input('category_id');
+        $task->priority = $request->input('priority');
+        $task->deadline = $request->input('deadline');
         $task->completed = false;
         $task->save();
 
-        return redirect()->route('tasks.index')->with('flash_message', '新しくリストを追加しました。');
+        $status = $request->input('status', 'all');
+        return redirect()->route('tasks.index', ['status' => $status])->with('flash_message', '新しくリストを追加しました。');
     }
 
     /**
@@ -56,7 +79,9 @@ class TaskController extends Controller
      */
     public function edit(Task $task)
     {
-        return view('tasks.edit', compact('task'));
+        $categories  = Category::all();
+
+        return view('tasks.edit', compact('task', 'categories'));
     }
 
     /**
@@ -70,13 +95,18 @@ class TaskController extends Controller
     {
         $request->validate([
             'title' => 'required|max:20',
+            'category_id' => 'required|exists:categories,id',
         ]);
 
         $task->title = $request->input('title');
+        $task->category_id = $request->input('category_id');
+        $task->priority = $request->input('priority');
+        $task->deadline = $request->input('deadline');
         $task->completed = $request->boolean('completed', $task->completed);
         $task->save();
 
-        return redirect()->route('tasks.index')->with('flash_message', 'リストを編集しました。');
+        $status = $request->input('status', 'all');
+        return redirect()->route('tasks.index', ['status' => $status])->with('flash_message', 'リストを編集しました。');
     }
 
     /**
@@ -85,10 +115,11 @@ class TaskController extends Controller
      * @param  \App\Models\Task  $task
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Task $task)
+    public function destroy(Request $request, Task $task)
     {
         $task->delete();
 
-        return redirect()->route('tasks.index')->with('flash_message', 'リストを削除しました。');
+        $status = $request->input('status', 'all');
+        return redirect()->route('tasks.index', ['status' => $status])->with('flash_message', 'リストを削除しました。');
     }
 }
