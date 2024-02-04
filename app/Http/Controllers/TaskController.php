@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Task;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class TaskController extends Controller
 {
@@ -15,22 +16,27 @@ class TaskController extends Controller
      */
     public function index(Request $request)
     {
+        // ユーザーがログインしていない場合の処理
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+
         $status = $request->query('status', 'all');
         $search = $request->query('search');
 
-        $tasks = Task::query();
+        $userTasks = Task::where('user_id', auth()->id());
 
         if ($status == 'completed') {
-            $tasks->where('completed', true);
+            $userTasks->where('completed', true);
         } elseif ($status == 'incomplete') {
-            $tasks->where('completed', false);
+            $userTasks->where('completed', false);
         }
 
         if ($search) {
-            $tasks->where('title', 'like', '%' . $search . '%');
+            $userTasks->where('title', 'like', '%' . $search . '%');
         }
 
-        $tasks = $tasks->get();
+        $tasks = $userTasks->get();
 
         return view('tasks.index', compact('tasks'));
     }
@@ -60,12 +66,15 @@ class TaskController extends Controller
         ]);
 
         $task = new Task();
-        $task->title = $request->input('title');
-        $task->category_id = $request->input('category_id');
-        $task->priority = $request->input('priority');
-        $task->deadline = $request->input('deadline');
-        $task->completed = false;
+        $task->fill($request->all());
+        $task->user_id = auth()->id();
         $task->save();
+        // $task->title = $request->input('title');
+        // $task->category_id = $request->input('category_id');
+        // $task->priority = $request->input('priority');
+        // $task->deadline = $request->input('deadline');
+        // $task->completed = false;
+        // $task->save();
 
         $status = $request->input('status', 'all');
         return redirect()->route('tasks.index', ['status' => $status])->with('flash_message', '新しくリストを追加しました。');
@@ -98,12 +107,13 @@ class TaskController extends Controller
             'category_id' => 'required|exists:categories,id',
         ]);
 
-        $task->title = $request->input('title');
-        $task->category_id = $request->input('category_id');
-        $task->priority = $request->input('priority');
-        $task->deadline = $request->input('deadline');
-        $task->completed = $request->boolean('completed', $task->completed);
-        $task->save();
+        $task->fill($request->all())->save();
+        // $task->title = $request->input('title');
+        // $task->category_id = $request->input('category_id');
+        // $task->priority = $request->input('priority');
+        // $task->deadline = $request->input('deadline');
+        // $task->completed = $request->boolean('completed', $task->completed);
+        // $task->save();
 
         $status = $request->input('status', 'all');
         return redirect()->route('tasks.index', ['status' => $status])->with('flash_message', 'リストを編集しました。');

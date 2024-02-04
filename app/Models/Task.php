@@ -13,4 +13,18 @@ class Task extends Model
     {
         return $this->belongsTo(Category::class);
     }
+
+    protected $fillable = [
+        'title',
+        'category_id',
+        'priority',
+        'deadline',
+        'completed',
+        'user_id'
+    ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

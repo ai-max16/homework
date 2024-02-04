@@ -13,6 +13,7 @@
 </div>
 
 <div class="row mt-3 mb-3">
+  <!-- ToDoの状態絞り込みフォーム -->
   <div class="col-md-3 mb-3">
     <form action="{{ route('tasks.index') }}" method="get">
       <label for="status" class="form-label">ToDoの状態</label>
@@ -38,6 +39,7 @@
     </form>
   </div>
 
+  <!-- ToDo検索フォーム -->
   <div class="col-md-5 mb-3">
     <form action="{{ route('tasks.index') }}" method="get">
       <label for="search" class="form-label">ToDoを検索</label>
@@ -49,8 +51,8 @@
   </div>
 </div>
 
-
-@foreach($tasks as $task)
+<!-- ユーザーごとのタスク表示 -->
+@foreach(auth()->user()->tasks as $task)
 @if (request('status') == 'all' || (request('status') == 'completed' && $task->completed) || (request('status') == 'incomplete' && !$task->completed))
 <div class="card mb-3">
   <div class="card-body">

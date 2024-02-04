@@ -39,10 +39,12 @@
   <div class="form-group mb-3">
     <label for="category">優先度</label>
     <select class="form-control" name="priority" required>
-      <option value="" disabled selected>選択してください</option>
-      <option value="高">高</option>
-      <option value="中">中</option>
-      <option value="低">低</option>
+      <option value="高" @if(old('priority', $task->priority)==='高') selected
+        @endif>高</option>
+      <option value="中" @if(old('priority', $task->priority)==='中') selected
+        @endif>中</option>
+      <option value="低" @if(old('priority', $task->priority)==='低') selected
+        @endif>低</option>
     </select>
   </div>
   <div class="form-group mb-3">
@@ -52,11 +54,7 @@
 
   <div>
     <input type="hidden" name="completed" value="0">
-    @if ($task->completed)
-    <input type="checkbox" id="completed" name="completed" checked>
-    @else
-    <input type="checkbox" id="completed" name="completed">
-    @endif
+    <input type="checkbox" id="completed" name="completed" @if($task->completed) checked @endif value="1">
     <label for="completed">完了</label>
   </div>
   <button type="submit" class="btn btn-outline-primary">更新</button>
